@@ -1,0 +1,31 @@
+version: "3"
+
+services:
+  postgres:
+    build:
+      context: .
+      target: postgres
+    volumes:
+    - tmp:/tmp
+  uwsgi:
+    build:
+      context: .
+      target: uwsgi
+    command: --socket=/tmp/uwsgi.sock --chmod-socket=666 --wsgi-file=test.py --enable-threads --thunder-lock
+    environment:
+    - PGUSER=postgres
+    volumes:
+    - tmp:/tmp
+    - ./test.py:/app/test.py:ro
+  nginx:
+    build:
+      context: .
+      target: nginx
+    volumes:
+    - tmp:/tmp
+    - ./nginx.conf:/usr/conf/nginx.conf:ro
+    ports:
+    - 127.0.0.1:8080:8080
+
+volumes:
+  tmp:
