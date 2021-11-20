@@ -2,7 +2,7 @@
 
 Builds docker images for a simple Python + Postgres App from scratch.
 
-Made possible by [Linux From Scratch](http://www.linuxfromscratch.org/).
+Made possible by [Linux From Scratch](https://www.linuxfromscratch.org/).
 
 ![That is not a Dockerfile](./meme.jpg)
 
