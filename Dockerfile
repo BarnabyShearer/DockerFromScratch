@@ -1,5 +1,7 @@
 #syntax=docker/dockerfile:1.2-labs
 # Huge props to http://www.linuxfromscratch.org/ and all the upstreams.
+# ~ https://www.linuxfromscratch.org/lfs/view/10.1/
+# ~ https://www.linuxfromscratch.org/blfs/view/10.1/
 
 FROM gcc:10.2.0 AS cross
 
@@ -999,13 +1001,13 @@ RUN --network=none --mount=type=tmpfs,target=/build \
 
 ADD https://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt ..
 RUN --network=none --mount=type=tmpfs,target=/build \
-    echo e754eded722beba13b7ea6573d0f3801 ../certdata.txt | md5sum --quiet --strict --check - \
+    echo 347105b06db3b64594013675125a86d4 ../certdata.txt | md5sum --quiet --strict --check - \
     && cp ../certdata.txt . \
     && /usr/sbin/make-ca \
     ;
 
 ADD http://xmlsoft.org/sources/libxml2-2.9.10.tar.gz ..
-ADD http://www.linuxfromscratch.org/patches/blfs/svn/libxml2-2.9.10-security_fixes-1.patch ..
+ADD http://www.linuxfromscratch.org/patches/blfs/10.1/libxml2-2.9.10-security_fixes-1.patch ..
 RUN --network=none --mount=type=tmpfs,target=/build \
     echo 10942a1dc23137a8aa07f0639cbfece5 ../libxml2-2.9.10.tar.gz | md5sum --quiet --strict --check - \
     && echo 8219ac0c91e7c79dac9cf45dbedb0708 ../libxml2-2.9.10-security_fixes-1.patch | md5sum --quiet --strict --check - \
@@ -1095,7 +1097,7 @@ ENTRYPOINT ["/usr/bin/bash"]
 
 FROM build AS build-uwsgi
 
-ADD https://projects.unbit.it/downloads/uwsgi-2.0.19.1.tar.gz#1 ..
+ADD https://projects.unbit.it/downloads/uwsgi-2.0.19.1.tar.gz ..
 RUN --network=none --mount=type=tmpfs,target=/build \
     echo cfbc6b37c52ef745b4dac9361a950e77 ../uwsgi-2.0.19.1.tar.gz | md5sum --quiet --strict --check - \
     && tar --strip-components=1 -xf ../uwsgi-2.0.19.1.tar.gz \
@@ -1106,7 +1108,7 @@ RUN --network=none --mount=type=tmpfs,target=/build \
 
 FROM build AS build-nginx
 
-ADD https://ftp.pcre.org/pub/pcre/pcre-8.44.tar.bz2 ..
+ADD https://ftp.exim.org/pub/pcre/pcre-8.44.tar.bz2 ..
 RUN --network=none --mount=type=tmpfs,target=/build \
     echo cf7326204cc46c755b5b2608033d9d24 ../pcre-8.44.tar.bz2 | md5sum --quiet --strict --check - \
     && tar --strip-components=1 -xf ../pcre-8.44.tar.bz2 \
