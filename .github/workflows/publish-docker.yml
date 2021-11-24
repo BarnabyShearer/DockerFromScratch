@@ -29,6 +29,7 @@ jobs:
             *.cache-to=registry,ref=ghcr.io/${{ github.repository }}:cache,mode=max
 
   publish:
+    needs: build
     runs-on: ubuntu-latest
     strategy:
       matrix:
