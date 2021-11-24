@@ -184,10 +184,25 @@ RUN --network=none --mount=type=tmpfs,target=/mnt/lfs/build \
     && ln -sv bash /mnt/lfs/usr/bin/sh \
     ;
 
+ADD https://ftp.gnu.org/gnu/patch/patch-2.7.6.tar.xz ..
+RUN --network=none --mount=type=tmpfs,target=/mnt/lfs/build \
+    echo 78ad9937e4caadcba1526ef1853730d5 ../patch-2.7.6.tar.xz | md5sum --quiet --strict --check - \
+    && tar --strip-components=1 -xf ../patch-2.7.6.tar.xz \
+    && ./configure \
+        --prefix=/usr \
+        --host=$(uname -m)-lfs-linux-gnu \
+        --build=$(build-aux/config.guess) \
+    && make -j16 \
+    && make DESTDIR=/mnt/lfs install-strip \
+    ;
+
 ADD https://ftp.gnu.org/gnu/coreutils/coreutils-8.32.tar.xz ..
+ADD http://git.savannah.gnu.org/cgit/coreutils.git/patch/?id=10fcb97bd728f09d4a027eddf8ad2900f0819b0a ../coreutils-8.32_arm64_backport.patch
 RUN --network=none --mount=type=tmpfs,target=/mnt/lfs/build \
     echo 022042695b7d5bcf1a93559a9735e668 ../coreutils-8.32.tar.xz | md5sum --quiet --strict --check - \
+    && echo 5248671fb52cff655fd02606416484ea ../coreutils-8.32_arm64_backport.patch | md5sum --quiet --strict --check - \
     && tar --strip-components=1 -xf ../coreutils-8.32.tar.xz \
+    && patch -p1 -i ../coreutils-8.32_arm64_backport.patch \
     && ./configure \
         --prefix=/usr \
         --host=$(uname -m)-lfs-linux-gnu \
@@ -279,18 +294,6 @@ RUN --network=none --mount=type=tmpfs,target=/mnt/lfs/build \
     && make DESTDIR=/mnt/lfs install-strip \
     ;
 
-ADD https://ftp.gnu.org/gnu/patch/patch-2.7.6.tar.xz ..
-RUN --network=none --mount=type=tmpfs,target=/mnt/lfs/build \
-    echo 78ad9937e4caadcba1526ef1853730d5 ../patch-2.7.6.tar.xz | md5sum --quiet --strict --check - \
-    && tar --strip-components=1 -xf ../patch-2.7.6.tar.xz \
-    && ./configure \
-        --prefix=/usr \
-        --host=$(uname -m)-lfs-linux-gnu \
-        --build=$(build-aux/config.guess) \
-    && make -j16 \
-    && make DESTDIR=/mnt/lfs install-strip \
-    ;
-
 ADD https://ftp.gnu.org/gnu/sed/sed-4.8.tar.xz ..
 RUN --network=none --mount=type=tmpfs,target=/mnt/lfs/build \
     echo 6d906edfdb3202304059233f51f9a71d ../sed-4.8.tar.xz | md5sum --quiet --strict --check - \
@@ -376,6 +379,7 @@ RUN --network=none --mount=type=tmpfs,target=/mnt/lfs/build \
 RUN --network=none \
     rm -Rf /mnt/lfs/build/ /mnt/lfs/tools/ \
     && ln -s usr/bin /mnt/lfs/bin \
+    && [ "$(uname -m)" = "aarch64" ] && mkdir /mnt/lfs/lib && ln -s ../lib64/ld-2.32.so /mnt/lfs/lib/ld-linux-aarch64.so.1 || true \
     && mkdir /mnt/lfs/tmp \
     && chmod 1777 /mnt/lfs/tmp \
     ;
