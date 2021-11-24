@@ -1,5 +1,7 @@
 # DockerFromScratch
 
+![[hub.docker.io](https://img.shields.io/docker/v/barnabyshearer/htmloverpdf/latest?color=success&label=docker)](https://hub.docker.com/repository/docker/barnabyshearer/htmloverpdf)
+
 Builds docker images for a simple Python + Postgres App from scratch.
 
 Made possible by [Linux From Scratch](https://www.linuxfromscratch.org/).
