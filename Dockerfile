@@ -5,6 +5,8 @@
 
 FROM gcc:10.2.0 AS cross
 
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 ENV LC_ALL=POSIX \
     PATH=/mnt/lfs/tools/bin:$PATH
 
@@ -17,7 +19,7 @@ RUN --network=none --mount=type=tmpfs,target=/mnt/lfs/build \
     && ./configure \
         --prefix=/mnt/lfs/tools \
         --with-sysroot=/mnt/lfs \
-        --target=$(uname -m)-lfs-linux-gnu \
+        --target="$(uname -m)"-lfs-linux-gnu \
         --disable-nls \
         --disable-werror \
     && make -j16 \
@@ -40,7 +42,7 @@ RUN --network=none --mount=type=tmpfs,target=/mnt/lfs/build \
     && mkdir mpc && tar -C mpc --strip-components=1 -xf ../mpc-1.1.0.tar.gz \
     && mkdir build && cd build \
     && ../configure \
-        --target=$(uname -m)-lfs-linux-gnu \
+        --target="$(uname -m)"-lfs-linux-gnu \
         --prefix=/mnt/lfs/tools \
         --with-glibc-version=2.11 \
         --with-sysroot=/mnt/lfs \
@@ -62,7 +64,7 @@ RUN --network=none --mount=type=tmpfs,target=/mnt/lfs/build \
     && make -j16 \
     && make install-strip \
     && cat ../gcc/limitx.h ../gcc/glimits.h ../gcc/limity.h > \
-        $(dirname $($(uname -m)-lfs-linux-gnu-gcc -print-libgcc-file-name))/install-tools/include/limits.h \
+        "$(dirname "$("$(uname -m)"-lfs-linux-gnu-gcc -print-libgcc-file-name)")"/install-tools/include/limits.h \
     ;
 
 #ADD https://www.kernel.org/pub/linux/kernel/v5.x/linux-5.8.3.tar.xz ..
@@ -84,7 +86,7 @@ RUN --network=none --mount=type=tmpfs,target=/mnt/lfs/build \
     && tar --strip-components=1 -xf ../gawk-5.1.0.tar.xz \
     && sed -i 's/extras//' Makefile.in \
     && ./configure \
-        --build=$(./config.guess) \
+        --build="$(./config.guess)" \
     && make -j16 \
     && make install-strip \
     ;
@@ -106,27 +108,27 @@ RUN --network=none --mount=type=tmpfs,target=/mnt/lfs/build \
     && mkdir build && cd build \
     && ../configure \
         --prefix=/usr \
-        --host=$(uname -m)-lfs-linux-gnu \
-        --build=$(../scripts/config.guess) \
+        --host="$(uname -m)"-lfs-linux-gnu \
+        --build="$(../scripts/config.guess)" \
         --enable-kernel=3.2 \
         --with-headers=/mnt/lfs/usr/include \
         libc_cv_slibdir=/lib64 \
     && make -j16 \
     && make DESTDIR=/mnt/lfs install \
-    && /mnt/lfs/tools/libexec/gcc/$(uname -m)-lfs-linux-gnu/10.2.0/install-tools/mkheaders \
+    && /mnt/lfs/tools/libexec/gcc/"$(uname -m)"-lfs-linux-gnu/10.2.0/install-tools/mkheaders \
     ;
 
 RUN --network=none --mount=type=tmpfs,target=/mnt/lfs/build \
     tar --strip-components=1 -xf ../gcc-10.2.0.tar.xz \
     && mkdir build && cd build \
     && ../libstdc++-v3/configure \
-        --host=$(uname -m)-lfs-linux-gnu \
-        --build=$(../config.guess) \
+        --host="$(uname -m)"-lfs-linux-gnu \
+        --build="$(../config.guess)" \
         --prefix=/usr \
         --disable-multilib \
         --disable-nls \
         --disable-libstdcxx-pch \
-        --with-gxx-include-dir=/tools/$(uname -m)-lfs-linux-gnu/include/c++/10.2.0 \
+        --with-gxx-include-dir=/tools/"$(uname -m)"-lfs-linux-gnu/include/c++/10.2.0 \
     && make -j16 \
     && make DESTDIR=/mnt/lfs install-strip \
     ;
@@ -139,8 +141,8 @@ RUN --network=none --mount=type=tmpfs,target=/mnt/lfs/build \
     && echo '#define _IO_IN_BACKUP 0x100' >> lib/stdio-impl.h \
     && ./configure \
         --prefix=/usr \
-        --host=$(uname -m)-lfs-linux-gnu \
-        --build=$(build-aux/config.guess) \
+        --host="$(uname -m)"-lfs-linux-gnu \
+        --build="$(build-aux/config.guess)" \
     && make -j16 \
     && make DESTDIR=/mnt/lfs install-strip \
     ;
@@ -156,8 +158,8 @@ RUN --network=none --mount=type=tmpfs,target=/mnt/lfs/build \
     && cd .. \
     && ./configure \
         --prefix=/usr \
-        --host=$(uname -m)-lfs-linux-gnu \
-        --build=$(./config.guess) \
+        --host="$(uname -m)"-lfs-linux-gnu \
+        --build="$(./config.guess)" \
         --mandir=/usr/share/man \
         --with-manpage-format=normal \
         --with-shared \
@@ -166,7 +168,7 @@ RUN --network=none --mount=type=tmpfs,target=/mnt/lfs/build \
         --without-normal \
         --enable-widec \
     && make -j16 \
-    && make DESTDIR=/mnt/lfs TIC_PATH=$(pwd)/build/progs/tic install \
+    && make DESTDIR=/mnt/lfs TIC_PATH="$(pwd)"/build/progs/tic install \
     && echo 'INPUT(-lncursesw)' > /mnt/lfs/usr/lib/libncurses.so \
     ;
 
@@ -176,8 +178,8 @@ RUN --network=none --mount=type=tmpfs,target=/mnt/lfs/build \
     && tar --strip-components=1 -xf ../bash-5.0.tar.gz \
     && ./configure \
         --prefix=/usr \
-        --build=$(support/config.guess) \
-        --host=$(uname -m)-lfs-linux-gnu \
+        --build="$(support/config.guess)" \
+        --host="$(uname -m)"-lfs-linux-gnu \
         --without-bash-malloc \
     && make -j16 \
     && make DESTDIR=/mnt/lfs install-strip \
@@ -190,8 +192,8 @@ RUN --network=none --mount=type=tmpfs,target=/mnt/lfs/build \
     && tar --strip-components=1 -xf ../patch-2.7.6.tar.xz \
     && ./configure \
         --prefix=/usr \
-        --host=$(uname -m)-lfs-linux-gnu \
-        --build=$(build-aux/config.guess) \
+        --host="$(uname -m)"-lfs-linux-gnu \
+        --build="$(build-aux/config.guess)" \
     && make -j16 \
     && make DESTDIR=/mnt/lfs install-strip \
     ;
@@ -205,8 +207,8 @@ RUN --network=none --mount=type=tmpfs,target=/mnt/lfs/build \
     && patch -p1 -i ../coreutils-8.32_arm64_backport.patch \
     && ./configure \
         --prefix=/usr \
-        --host=$(uname -m)-lfs-linux-gnu \
-        --build=$(build-aux/config.guess) \
+        --host="$(uname -m)"-lfs-linux-gnu \
+        --build="$(build-aux/config.guess)" \
         --enable-install-program=hostname \
         --enable-no-install-program=kill,uptime \
     && make -j16 \
@@ -220,7 +222,7 @@ RUN --network=none --mount=type=tmpfs,target=/mnt/lfs/build \
     && tar --strip-components=1 -xf ../diffutils-3.7.tar.xz \
     && ./configure \
         --prefix=/usr \
-        --host=$(uname -m)-lfs-linux-gnu \
+        --host="$(uname -m)"-lfs-linux-gnu \
     && make -j16 \
     && make DESTDIR=/mnt/lfs install-strip \
     ;
@@ -231,7 +233,7 @@ RUN --network=none --mount=type=tmpfs,target=/mnt/lfs/build \
     && tar --strip-components=1 -xf ../file-5.39.tar.gz \
     && ./configure \
         --prefix=/usr \
-        --host=$(uname -m)-lfs-linux-gnu \
+        --host="$(uname -m)"-lfs-linux-gnu \
     && make -j16 \
     && make DESTDIR=/mnt/lfs install-strip \
     ;
@@ -242,8 +244,8 @@ RUN --network=none --mount=type=tmpfs,target=/mnt/lfs/build \
     && tar --strip-components=1 -xf ../findutils-4.7.0.tar.xz \
     && ./configure \
         --prefix=/usr \
-        --host=$(uname -m)-lfs-linux-gnu \
-        --build=$(build-aux/config.guess) \
+        --host="$(uname -m)"-lfs-linux-gnu \
+        --build="$(build-aux/config.guess)" \
     && make -j16 \
     && make DESTDIR=/mnt/lfs install-strip \
     ;
@@ -253,8 +255,8 @@ RUN --network=none --mount=type=tmpfs,target=/mnt/lfs/build \
     && sed -i 's/extras//' Makefile.in \
     && ./configure \
         --prefix=/usr \
-        --host=$(uname -m)-lfs-linux-gnu \
-        --build=$(./config.guess) \
+        --host="$(uname -m)"-lfs-linux-gnu \
+        --build="$(./config.guess)" \
     && make -j16 \
     && make DESTDIR=/mnt/lfs install-strip \
     ;
@@ -265,7 +267,7 @@ RUN --network=none --mount=type=tmpfs,target=/mnt/lfs/build \
     && tar --strip-components=1 -xf ../grep-3.4.tar.xz \
     && ./configure \
         --prefix=/usr \
-        --host=$(uname -m)-lfs-linux-gnu \
+        --host="$(uname -m)"-lfs-linux-gnu \
     && make -j16 \
     && make DESTDIR=/mnt/lfs install-strip \
     ;
@@ -276,7 +278,7 @@ RUN --network=none --mount=type=tmpfs,target=/mnt/lfs/build \
     && tar --strip-components=1 -xf ../gzip-1.10.tar.xz \
     && ./configure \
         --prefix=/usr \
-        --host=$(uname -m)-lfs-linux-gnu \
+        --host="$(uname -m)"-lfs-linux-gnu \
     && make -j16 \
     && make DESTDIR=/mnt/lfs install-strip \
     ;
@@ -287,8 +289,8 @@ RUN --network=none --mount=type=tmpfs,target=/mnt/lfs/build \
     && tar --strip-components=1 -xf ../make-4.3.tar.gz \
     && ./configure \
         --prefix=/usr \
-        --host=$(uname -m)-lfs-linux-gnu \
-        --build=$(build-aux/config.guess) \
+        --host="$(uname -m)"-lfs-linux-gnu \
+        --build="$(build-aux/config.guess)" \
         --without-guile \
     && make -j16 \
     && make DESTDIR=/mnt/lfs install-strip \
@@ -300,7 +302,7 @@ RUN --network=none --mount=type=tmpfs,target=/mnt/lfs/build \
     && tar --strip-components=1 -xf ../sed-4.8.tar.xz \
     && ./configure \
         --prefix=/usr \
-        --host=$(uname -m)-lfs-linux-gnu \
+        --host="$(uname -m)"-lfs-linux-gnu \
     && make -j16 \
     && make DESTDIR=/mnt/lfs install-strip \
     ;
@@ -311,8 +313,8 @@ RUN --network=none --mount=type=tmpfs,target=/mnt/lfs/build \
     && tar --strip-components=1 -xf ../tar-1.32.tar.xz \
     && ./configure \
         --prefix=/usr \
-        --host=$(uname -m)-lfs-linux-gnu \
-        --build=$(build-aux/config.guess) \
+        --host="$(uname -m)"-lfs-linux-gnu \
+        --build="$(build-aux/config.guess)" \
     && make -j16 \
     && make DESTDIR=/mnt/lfs install-strip \
     ;
@@ -324,8 +326,8 @@ RUN --network=none --mount=type=tmpfs,target=/mnt/lfs/build \
     && tar --strip-components=1 -xf ../xz-5.2.5.tar.xz \
     && ./configure \
         --prefix=/usr \
-        --host=$(uname -m)-lfs-linux-gnu \
-        --build=$(build-aux/config.guess) \
+        --host="$(uname -m)"-lfs-linux-gnu \
+        --build="$(build-aux/config.guess)" \
         --disable-static \
     && make -j16 \
     && make DESTDIR=/mnt/lfs install-strip \
@@ -336,8 +338,8 @@ RUN --network=none --mount=type=tmpfs,target=/mnt/lfs/build \
     && mkdir build && cd build \
     && ../configure \
         --prefix=/usr \
-        --build=$(../config.guess) \
-        --host=$(uname -m)-lfs-linux-gnu \
+        --build="$(../config.guess)" \
+        --host="$(uname -m)"-lfs-linux-gnu \
         --disable-nls \
         --enable-shared \
         --disable-werror \
@@ -352,13 +354,13 @@ RUN --network=none --mount=type=tmpfs,target=/mnt/lfs/build \
     && mkdir gmp && tar -C gmp --strip-components=1 -xf ../gmp-6.2.0.tar.xz \
     && mkdir mpc && tar -C mpc --strip-components=1 -xf ../mpc-1.1.0.tar.gz \
     && mkdir build && cd build \
-    && mkdir -pv $(uname -m)-lfs-linux-gnu/libgcc \
-    && ln -s ../../../libgcc/gthr-posix.h $(uname -m)-lfs-linux-gnu/libgcc/gthr-default.h \
+    && mkdir -pv "$(uname -m)"-lfs-linux-gnu/libgcc \
+    && ln -s ../../../libgcc/gthr-posix.h "$(uname -m)"-lfs-linux-gnu/libgcc/gthr-default.h \
     && ../configure \
-        --build=$(../config.guess) \
-        --host=$(uname -m)-lfs-linux-gnu \
+        --build="$(../config.guess)" \
+        --host="$(uname -m)"-lfs-linux-gnu \
         --prefix=/usr \
-        CC_FOR_TARGET=$(uname -m)-lfs-linux-gnu-gcc \
+        CC_FOR_TARGET="$(uname -m)"-lfs-linux-gnu-gcc \
         --with-build-sysroot=/mnt/lfs \
         --enable-initfini-array \
         --disable-nls \
@@ -386,6 +388,8 @@ RUN --network=none \
 
 FROM scratch AS build
 
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 WORKDIR /build/
 COPY --from=cross --chown=0:0 /mnt/lfs/ /
 
@@ -398,7 +402,7 @@ RUN --network=none --mount=type=tmpfs,target=/build \
         --prefix=/usr \
         --disable-multilib \
         --disable-nls \
-        --host=$(uname -m)-lfs-linux-gnu \
+        --host="$(uname -m)"-lfs-linux-gnu \
         --disable-libstdcxx-pch \
     && make -j16 \
     && make install-strip \
@@ -465,6 +469,7 @@ RUN --network=none --mount=type=tmpfs,target=/build \
     && cp services protocols /etc \
     ;
 
+# hadolint ignore=SC2016
 RUN --network=none --mount=type=tmpfs,target=/build \
     tar --strip-components=1 -xf ../glibc-2.32.tar.xz \
     && mkdir build && cd build \
@@ -699,11 +704,11 @@ RUN --network=none --mount=type=tmpfs,target=/build \
         --with-system-zlib \
     && make -j16 \
     && make install-strip \
-    && rm -rf /usr/lib/gcc/$(gcc -dumpmachine)/10.2.0/include-fixed/bits/ \
+    && rm -rf /usr/lib/gcc/"$(gcc -dumpmachine)"/10.2.0/include-fixed/bits/ \
     && chown -v -R 0:0 /usr/lib/gcc/*linux-gnu/10.2.0/include{,-fixed} \
     && ln -sv ../usr/bin/cpp /lib \
     && install -v -dm755 /usr/lib/bfd-plugins \
-    && ln -sfv ../../libexec/gcc/$(gcc -dumpmachine)/10.2.0/liblto_plugin.so /usr/lib/bfd-plugins/ \
+    && ln -sfv ../../libexec/gcc/"$(gcc -dumpmachine)"/10.2.0/liblto_plugin.so /usr/lib/bfd-plugins/ \
     && mkdir -pv /usr/share/gdb/auto-load/usr/lib \
     && mv -v /usr/lib64/*gdb.py /usr/share/gdb/auto-load/usr/lib \
     ;
@@ -947,7 +952,7 @@ ADD https://www.openssl.org/source/openssl-1.1.1g.tar.gz ..
 RUN --network=none --mount=type=tmpfs,target=/build \
     echo 76766e98997660138cdaf13a187bd234 ../openssl-1.1.1g.tar.gz | md5sum --quiet --strict --check - \
     && tar --strip-components=1 -xf ../openssl-1.1.1g.tar.gz \
-    && ./Configure linux-$(uname -m) \
+    && ./Configure linux-"$(uname -m)" \
         --prefix=/usr \
         --openssldir=/etc/ssl \
         shared \
@@ -976,7 +981,7 @@ RUN --network=none --mount=type=tmpfs,target=/build \
     echo 531208de3729d42e2af0a32890f08736 ../libtasn1-4.16.0.tar.gz | md5sum --quiet --strict --check - \
     && tar --strip-components=1 -xf ../libtasn1-4.16.0.tar.gz \
     && ./configure \
-        --host=$(uname -m)-lfs-linux-gnu \
+        --host="$(uname -m)"-lfs-linux-gnu \
         --prefix=/usr \
         --disable-static \
     && make -j16 \
@@ -988,7 +993,7 @@ RUN --network=none --mount=type=tmpfs,target=/build \
     echo 03f93a4eb62127b5d40e345c624a0665 ../p11-kit-0.23.22.tar.xz | md5sum --quiet --strict --check - \
     && tar --strip-components=1 -xf ../p11-kit-0.23.22.tar.xz \
     && ./configure \
-        --host=$(uname -m)-lfs-linux-gnu \
+        --host="$(uname -m)"-lfs-linux-gnu \
         --prefix=/usr \
         --sysconfdir=/etc \
         --with-trust-paths=/etc/pki/anchors \
@@ -1101,6 +1106,8 @@ ENTRYPOINT ["/usr/bin/bash"]
 
 FROM build AS build-uwsgi
 
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 ADD https://projects.unbit.it/downloads/uwsgi-2.0.19.1.tar.gz ..
 RUN --network=none --mount=type=tmpfs,target=/build \
     echo cfbc6b37c52ef745b4dac9361a950e77 ../uwsgi-2.0.19.1.tar.gz | md5sum --quiet --strict --check - \
@@ -1111,6 +1118,8 @@ RUN --network=none --mount=type=tmpfs,target=/build \
     ;
 
 FROM build AS build-nginx
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 ADD https://ftp.exim.org/pub/pcre/pcre-8.44.tar.bz2 ..
 RUN --network=none --mount=type=tmpfs,target=/build \
@@ -1146,12 +1155,14 @@ RUN --network=none --mount=type=tmpfs,target=/build \
 
 FROM build AS utils
 
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 ADD https://curl.haxx.se/download/curl-7.75.0.tar.xz ..
 RUN --network=none --mount=type=tmpfs,target=/build \
     echo 9730df8636d67b4e256ebc49daf27246 ../curl-7.75.0.tar.xz | md5sum --quiet --strict --check - \
     && tar --strip-components=1 -xf ../curl-7.75.0.tar.xz \
     && ./configure \
-        --host=$(uname -m)-lfs-linux-gnu \
+        --host="$(uname -m)"-lfs-linux-gnu \
         --prefix=/usr \
         --disable-static \
         --enable-threaded-resolver \
@@ -1182,6 +1193,8 @@ RUN --network=none --mount=type=tmpfs,target=/build \
 
 FROM scratch AS python
 
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 COPY --from=build /mnt/base /mnt/bash /mnt/python /
 
 RUN --network=none \
@@ -1194,6 +1207,8 @@ USER python:python
 ENTRYPOINT ["/usr/bin/python3"]
 
 FROM scratch AS uwsgi
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 COPY --from=build /mnt/base /mnt/bash /mnt/python /
 COPY --from=build-uwsgi /mnt/uwsgi /
@@ -1208,6 +1223,8 @@ USER python:python
 ENTRYPOINT ["/usr/bin/uwsgi"]
 
 FROM scratch AS postgres
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 COPY --from=build /mnt/base /mnt/bash /mnt/python /
 
@@ -1227,6 +1244,8 @@ RUN --network=none \
 ENTRYPOINT ["/usr/bin/postgres"]
 
 FROM scratch AS nginx
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 COPY --from=build /mnt/base /
 
