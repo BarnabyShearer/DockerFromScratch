@@ -1,12 +1,11 @@
 # DockerFromScratch
-
-![[hub.docker.io](https://img.shields.io/docker/v/barnabyshearer/htmloverpdf/latest?color=success&label=docker)](https://hub.docker.com/repository/docker/barnabyshearer/htmloverpdf)
+[![hub.docker.io](https://img.shields.io/docker/v/barnabyshearer/dockerfromscratch/latest?color=success&label=docker)](https://hub.docker.com/repository/docker/barnabyshearer/dockerfromscratch)
 
 Builds docker images for a simple Python + Postgres App from scratch.
 
 Made possible by [Linux From Scratch](https://www.linuxfromscratch.org/).
 
-![That is not a Dockerfile](./meme.jpg)
+![That is not a Dockerfile](https://github.com/BarnabyShearer/DockerFromScratch/raw/main/meme.jpg)
 
 Favours:
 - Up to date
