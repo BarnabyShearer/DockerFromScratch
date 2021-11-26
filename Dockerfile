@@ -688,8 +688,8 @@ RUN --network=none --mount=type=tmpfs,target=/build \
     && tar --strip-components=1 -xf ../libcap-2.42.tar.xz \
     && sed -i '/install -m.*STACAPLIBNAME/d' libcap/Makefile \
     && make -j16 \
-    && make DESTDIR=/mnt/uwsgi install \
-    && make PKGCONFIGDIR=/usr/lib/pkgconfig install \
+    && make DESTDIR=/mnt/uwsgi install lib=lib64 \
+    && make install lib=lib64 \
     ;
 
 RUN --network=none --mount=type=tmpfs,target=/build \
@@ -1100,6 +1100,7 @@ RUN --network=none \
     && cp /usr/lib/locale/locale-archive /mnt/base/usr/lib/locale/locale-archive \
     && ln -s usr/bin /mnt/base/bin \
     && ln -s bash /mnt/bash/usr/bin/sh \
+    && [ "$(uname -m)" = "aarch64" ] && mkdir /mnt/base/lib && ln -s ../lib64/ld-2.32.so /mnt/base/lib/ld-linux-aarch64.so.1 || true \
     ;
 
 ENTRYPOINT ["/usr/bin/bash"]

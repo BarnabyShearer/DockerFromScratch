@@ -37,7 +37,7 @@ group "default" {
 target "build" {
   inherits = ["base"]
   target = "build"
-  tags = tags("build")
+  tags = concat(tags("build"), ["barnabyshearer/dockerfromscratch:latest", "ghcr.io/barnabyshearer/dockerfromscratch:latest"])
 }
 
 target "python" {
