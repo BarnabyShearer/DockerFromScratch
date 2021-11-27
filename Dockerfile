@@ -1090,6 +1090,7 @@ RUN --network=none --mount=type=tmpfs,target=/build \
 
 COPY group nsswitch.conf passwd /etc/
 
+# hadolint ignore=SC2015
 RUN --network=none \
     rm -Rf /build ../*.tar.* \
     && mkdir -p /mnt/base/etc/ssl/ \
